@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'dart:math';
 import 'dart:typed_data';
+import 'package:flutter/cupertino.dart';
+import 'package:intl/intl.dart';
+import 'package:mapache_mqtt/models/message.dart';
 import 'package:mapache_mqtt/utils/alert_service.dart';
 import 'package:mapache_mqtt/utils/logger.dart';
 import 'package:fluro/fluro.dart';
@@ -80,12 +83,19 @@ class _HomePageState extends State<HomePage> {
       mqttClient.resubscribeOnAutoReconnect = true;
       mqttClient.subscribe("#", MqttQos.atMostOnce);
       mqttClient.updates!.listen((List<MqttReceivedMessage<MqttMessage>>? c) {
-        final MqttPublishMessage recMess = c![0].payload as MqttPublishMessage;
-        final String pt = MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
-        log("[${c[0].topic}] $pt");
-
+        final msg = Message(c![0].payload as MqttPublishMessage);
+        log("[${msg.topic}] ${msg.bytes}");
+        if (!messageMap.containsKey(msg.topic)) {
+          setState(() {
+            messageMap[msg.topic] = [msg];
+          });
+        } else {
+          setState(() {
+            messageMap[msg.topic]!.add(msg);
+          });
+        }
         if (c[0].topic == "meta/mapache_mqtt_ping") {
-          final ping = DateTime.now().difference(DateTime.parse(pt)).inMilliseconds;
+          final ping = DateTime.now().difference(DateTime.parse(msg.messageString)).inMilliseconds;
           log("Ping: $ping ms");
           setState(() {
             latency.add(ping);
@@ -105,6 +115,32 @@ class _HomePageState extends State<HomePage> {
       mqttClient.subscribe("meta", MqttQos.atMostOnce);
       mqttClient.publishMessage("meta/mapache_mqtt_ping", MqttQos.atMostOnce, MqttClientPayloadBuilder().addString(DateTime.now().toIso8601String()).payload!);
     });
+  }
+
+  List<Widget> getLatestMessagesForTopic(String topic) {
+    List<Message> lastMessages = messageMap[topic] ?? [];
+    lastMessages.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    if (lastMessages.length > 5) {
+      lastMessages = lastMessages.sublist(0, 5);
+    }
+    return lastMessages.map((msg) => Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(msg.stringContainsUnknownUnicode() ? msg.bytes : msg.messageString),
+                Text(DateFormat("HH:mm:ss.SS").format(msg.timestamp.toLocal()), style: const TextStyle(color: Colors.grey)),
+              ],
+            ),
+          ),
+          Text("${msg.message.payload.message.length} bytes", style: const TextStyle(color: Colors.grey)),
+        ],
+      ),
+    )).toList();
   }
 
   @override
@@ -149,15 +185,24 @@ class _HomePageState extends State<HomePage> {
           children: [
             Row(
               children: [
-                Row(
-                  children: [
-                    const Text("Latency:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),),
-                    const Padding(padding: EdgeInsets.all(4)),
-                    Text("${latency.last}ms", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.grey),),
-                  ],
-                ),
+                const Text("Latency:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
+                const Padding(padding: EdgeInsets.all(4)),
+                Text("${latency.last}ms", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey),),
               ],
             ),
+            Row(
+              children: [
+                const Text("Last Message:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
+                const Padding(padding: EdgeInsets.all(4)),
+                Text(DateFormat("HH:mm:ss.SS").format(lastMessage.timestamp.toLocal()), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey),),
+              ],
+            ),
+            Column(
+              children: messageMap.entries.map((e) => ExpansionTile(
+                title: Text(e.key, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
+                children: getLatestMessagesForTopic(e.key),
+              )).toList(),
+            )
           ],
         ),
       )

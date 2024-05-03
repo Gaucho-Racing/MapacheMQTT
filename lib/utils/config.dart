@@ -2,6 +2,7 @@ import 'package:fluro/fluro.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:location/location.dart';
+import 'package:mapache_mqtt/models/message.dart';
 import 'package:mapache_mqtt/models/version.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,4 +28,6 @@ LocationData? currentPosition;
 String MAPBOX_PUBLIC_TOKEN = "mapbox-public-token";
 String MAPBOX_ACCESS_TOKEN = "mapbox-access-token";
 
-List<int> latency = [];
+List<int> latency = [0];
+Map<String, List<Message>> messageMap = {};
+Message lastMessage = Message(MqttPublishMessage());
