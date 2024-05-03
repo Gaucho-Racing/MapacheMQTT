@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:mapache_mqtt/models/message.dart';
 import 'package:mapache_mqtt/utils/alert_service.dart';
@@ -143,6 +144,24 @@ class _HomePageState extends State<HomePage> {
     )).toList();
   }
 
+  double getAverageMessagesPerSecond() {
+    List<Message> totalMessages = [];
+    messageMap.values.forEach((m) {
+      totalMessages.addAll(m);
+    });
+    int num = totalMessages.where((m) => DateTime.now().difference(m.timestamp.toLocal()).inSeconds < 5).length;
+    return (num / 5);
+  }
+
+  double getAverageBytesPerSecond() {
+    List<Message> totalMessages = [];
+    messageMap.values.forEach((m) {
+      totalMessages.addAll(m);
+    });
+    int num = totalMessages.where((m) => DateTime.now().difference(m.timestamp.toLocal()).inSeconds < 5).fold(0, (prev, m) => prev + m.message.payload.message.length);
+    return (num / 5);
+  }
+
   @override
   void dispose() {
     super.dispose();
@@ -197,9 +216,24 @@ class _HomePageState extends State<HomePage> {
                 Text(DateFormat("HH:mm:ss.SS").format(lastMessage.timestamp.toLocal()), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey),),
               ],
             ),
+            Row(
+              children: [
+                const Text("Avg msg/s:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
+                const Padding(padding: EdgeInsets.all(4)),
+                Text("${getAverageMessagesPerSecond()} (${getAverageBytesPerSecond()} bytes)", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey),),
+              ],
+            ),
+            const Padding(padding: EdgeInsets.all(8)),
             Column(
               children: messageMap.entries.map((e) => ExpansionTile(
-                title: Text(e.key, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
+                tilePadding: EdgeInsets.zero,
+                title: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(child: Text(e.key, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),)),
+                    Text("${e.value.length} msg", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.grey)),
+                  ],
+                ),
                 children: getLatestMessagesForTopic(e.key),
               )).toList(),
             )
