@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:math';
+import 'dart:typed_data';
 import 'package:mapache_mqtt/utils/alert_service.dart';
 import 'package:mapache_mqtt/utils/logger.dart';
 import 'package:fluro/fluro.dart';
@@ -17,6 +19,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
 
   String connectionStatus = "Disconnected";
+  Timer? pingTimer;
 
   @override
   void setState(fn) {
@@ -78,16 +81,37 @@ class _HomePageState extends State<HomePage> {
       mqttClient.subscribe("#", MqttQos.atMostOnce);
       mqttClient.updates!.listen((List<MqttReceivedMessage<MqttMessage>>? c) {
         final MqttPublishMessage recMess = c![0].payload as MqttPublishMessage;
-        final String pt = MqttPublishPayload.bytesToString(recMess.payload.message);
+        final String pt = MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
         log("[${c[0].topic}] $pt");
+
+        if (c[0].topic == "meta/mapache_mqtt_ping") {
+          final ping = DateTime.now().difference(DateTime.parse(pt)).inMilliseconds;
+          log("Ping: $ping ms");
+          setState(() {
+            latency.add(ping);
+          });
+        }
       });
+
+      initializePing();
     } catch(err) {
       log("Failed to connect to MQTT server: $err", LogLevel.error);
       AlertService.showErrorSnackbar(context, err.toString());
     }
   }
 
+  void initializePing() {
+    pingTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      mqttClient.subscribe("meta", MqttQos.atMostOnce);
+      mqttClient.publishMessage("meta/mapache_mqtt_ping", MqttQos.atMostOnce, MqttClientPayloadBuilder().addString(DateTime.now().toIso8601String()).payload!);
+    });
+  }
 
+  @override
+  void dispose() {
+    super.dispose();
+    pingTimer?.cancel();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -106,19 +130,37 @@ class _HomePageState extends State<HomePage> {
           Card(
             // color: Colors.greenAccent,
             child: Padding(
-              padding: EdgeInsets.all(4.0),
+              padding: const EdgeInsets.all(4.0),
               child: Row(
                 children: [
                   Icon(Icons.circle, color: connectionStatus == "Connected" ? Colors.greenAccent : connectionStatus == "Disconnected" ? Colors.redAccent : Colors.amberAccent, size: 12),
-                  Padding(padding: EdgeInsets.all(4)),
-                  Text(connectionStatus, style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Padding(padding: EdgeInsets.all(4)),
+                  Text(connectionStatus, style: const TextStyle(fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
           ),
-          Padding(padding: EdgeInsets.all(4)),
+          const Padding(padding: EdgeInsets.all(4)),
         ],
       ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Row(
+                  children: [
+                    const Text("Latency:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),),
+                    const Padding(padding: EdgeInsets.all(4)),
+                    Text("${latency.last}ms", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.grey),),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+      )
     );
   }
 }

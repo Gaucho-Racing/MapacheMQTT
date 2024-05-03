@@ -26,3 +26,5 @@ LocationData? currentPosition;
 
 String MAPBOX_PUBLIC_TOKEN = "mapbox-public-token";
 String MAPBOX_ACCESS_TOKEN = "mapbox-access-token";
+
+List<int> latency = [];
