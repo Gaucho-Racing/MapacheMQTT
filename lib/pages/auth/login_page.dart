@@ -39,6 +39,12 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  @override
+  initState() {
+    super.initState();
+    checkSavedCredentials();
+  }
+
   Future<void> login() async {
     if (user == "" || password == "" || host == "" || port == "") {
       AlertService.showErrorSnackbar(context, "Please make sure to fill out all the fields!");
@@ -56,7 +62,16 @@ class _LoginPageState extends State<LoginPage> {
       await mqttClient.connect();
       if (mqttClient.connectionStatus!.state == MqttConnectionState.connected) {
         log("Connected to MQTT server @ $host", LogLevel.info);
+        mqttHost = host;
+        mqttPort = port;
+        mqttUser = user;
+        mqttPassword = password;
+        prefs.setString("mqtt_host", host);
+        prefs.setString("mqtt_port", port);
+        prefs.setString("mqtt_user", user);
+        prefs.setString("mqtt_password", password);
         AlertService.showSuccessSnackbar(context, "Connected to MQTT server!");
+        mqttClient.disconnect();
         router.navigateTo(context, "/home", transition: TransitionType.fadeIn, replace: true, clearStack: true);
       } else {
         log("Failed to connect to MQTT server", LogLevel.error);
@@ -67,6 +82,24 @@ class _LoginPageState extends State<LoginPage> {
       AlertService.showErrorSnackbar(context, err.toString());
     }
     setState(() => isLoading = false);
+  }
+
+  Future<void> checkSavedCredentials() async {
+    final savedHost = prefs.getString("mqtt_host");
+    final savedPort = prefs.getString("mqtt_port");
+    final savedUser = prefs.getString("mqtt_user");
+    final savedPassword = prefs.getString("mqtt_password");
+    if (savedHost != null && savedPort != null && savedUser != null && savedPassword != null) {
+      hostController.text = savedHost;
+      portController.text = savedPort;
+      userController.text = savedUser;
+      passwordController.text = savedPassword;
+      host = savedHost;
+      port = savedPort;
+      user = savedUser;
+      password = savedPassword;
+      login();
+    }
   }
 
   @override

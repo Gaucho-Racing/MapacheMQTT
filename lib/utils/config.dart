@@ -17,6 +17,11 @@ Version appVersion = Version("1.0.0+1");
 
 MqttClient mqttClient = MqttClient("", "");
 
+String mqttHost = "";
+String mqttPort = "";
+String mqttUser = "";
+String mqttPassword = "";
+
 LocationData? currentPosition;
 
 String MAPBOX_PUBLIC_TOKEN = "mapbox-public-token";
