@@ -86,6 +86,9 @@ class _HomePageState extends State<HomePage> {
       mqttClient.updates!.listen((List<MqttReceivedMessage<MqttMessage>>? c) {
         final msg = Message(c![0].payload as MqttPublishMessage);
         log("[${msg.topic}] ${msg.bytes}");
+        setState(() {
+          lastMessage = msg;
+        });
         if (!messageMap.containsKey(msg.topic)) {
           setState(() {
             messageMap[msg.topic] = [msg];
