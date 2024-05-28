@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fluro/fluro.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
@@ -32,4 +34,21 @@ List<int> latency = [0];
 Map<String, List<Message>> messageMap = {};
 Message lastMessage = Message(MqttPublishMessage());
 
+int mobileNodeInterval = 200;
+String carClass = "gr24";
+String carID = "test";
+String mobileNodeTopic = "mobile";
+
+Timer? mobileNodeTimer;
+bool isSendingMobileNode = false;
+
 DateTime lastGpsUpdate = DateTime.now();
+double accelerometerX = 0.0;
+double accelerometerY = 0.0;
+double accelerometerZ = 0.0;
+double gyroscopeX = 0.0;
+double gyroscopeY = 0.0;
+double gyroscopeZ = 0.0;
+double magnetometerX = 0.0;
+double magnetometerY = 0.0;
+double magnetometerZ = 0.0;

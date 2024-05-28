@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:location/location.dart';
 import 'package:mapache_mqtt/models/message.dart';
+import 'package:mapache_mqtt/models/mobile_node.dart';
 import 'package:mapache_mqtt/utils/alert_service.dart';
 import 'package:mapache_mqtt/utils/logger.dart';
 import 'package:fluro/fluro.dart';
@@ -16,6 +17,8 @@ import 'package:mapache_mqtt/widgets/loading.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
+import 'package:sensors_plus/sensors_plus.dart';
+import 'package:typed_data/src/typed_buffer.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -24,7 +27,7 @@ class MapPage extends StatefulWidget {
   State<MapPage> createState() => _MapPageState();
 }
 
-class _MapPageState extends State<MapPage> {
+class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<MapPage> {
 
   MapboxMapController? mapController;
   Location location = Location();
@@ -32,8 +35,8 @@ class _MapPageState extends State<MapPage> {
   bool _serviceEnabled = false;
   PermissionStatus _permissionGranted = PermissionStatus.denied;
 
-  Timer? pingTimer;
-  bool isSending = false;
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void setState(fn) {
@@ -46,12 +49,13 @@ class _MapPageState extends State<MapPage> {
   void initState() {
     super.initState();
     getUserLocation();
+    sensorListeners();
   }
 
   @override
   void dispose() {
     super.dispose();
-    pingTimer?.cancel();
+    mobileNodeTimer?.cancel();
   }
 
   void _onMapCreated(MapboxMapController controller) {
@@ -81,8 +85,6 @@ class _MapPageState extends State<MapPage> {
 
   Future<void> _determinePosition() async {
     location.onLocationChanged.listen((LocationData newPosition) {
-      double delta = calculateDistance(currentPosition?.latitude ?? 0, currentPosition?.longitude?? 0, newPosition.latitude!, newPosition.longitude!);
-      log("Position update delta: ${delta}m");
       setState(() {
         currentPosition = newPosition;
       });
@@ -91,28 +93,77 @@ class _MapPageState extends State<MapPage> {
     });
   }
 
-  double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-    double p = 0.017453292519943295;
-    double a = 0.5 - cos((lat2 - lat1) * p)/2 + cos(lat1 * p) * cos(lat2 * p) * (1 - cos((lon2 - lon1) * p))/2;
-    return 12742 * asin(sqrt(a)) * 1000;
+  void sensorListeners() {
+    accelerometerEventStream().listen((AccelerometerEvent event) {
+        // log("accelerometer: (${event.x}, ${event.y}, ${event.z})");
+        setState(() {
+          accelerometerX = event.x;
+          accelerometerY = event.y;
+          accelerometerZ = event.z;
+        });
+      },
+      onError: (error) {},
+      cancelOnError: false,
+    );
+    gyroscopeEventStream().listen((GyroscopeEvent event) {
+      // log("gyroscope: (${event.x}, ${event.y}, ${event.z})");
+      setState(() {
+        gyroscopeX = event.x;
+        gyroscopeY = event.y;
+        gyroscopeZ = event.z;
+      });
+      },
+      onError: (error) {},
+      cancelOnError: false,
+    );
+
+    magnetometerEventStream().listen((MagnetometerEvent event) {
+      // log("magnetometer: (${event.x}, ${event.y}, ${event.z})");
+      setState(() {
+        magnetometerX = event.x;
+        magnetometerY = event.y;
+        magnetometerZ = event.z;
+      });
+      },
+      onError: (error) {},
+      cancelOnError: false,
+    );
   }
 
   void sendMobilePacket() {
+    MobileNode node = MobileNode();
+    node.latitude = currentPosition?.latitude ?? 0;
+    node.longitude = currentPosition?.longitude ?? 0;
+    node.altitude = currentPosition?.altitude ?? 0;
+    node.speed = currentPosition?.speed ?? 0;
+    node.accelerometerX = accelerometerX;
+    node.accelerometerY = accelerometerY;
+    node.accelerometerZ = accelerometerZ;
+    node.gyroscopeX = gyroscopeX;
+    node.gyroscopeY = gyroscopeY;
+    node.gyroscopeZ = gyroscopeZ;
+    node.magnetometerX = magnetometerX;
+    node.magnetometerY = magnetometerY;
+    node.magnetometerZ = magnetometerZ;
+    node.millis = DateTime.now().millisecondsSinceEpoch;
+    Uint8Buffer buffer = Uint8Buffer();
+    buffer.addAll(node.toBytes());
+    mqttClient.publishMessage("$carClass/$carID/$mobileNodeTopic", MqttQos.atMostOnce, buffer);
     setState(() {
       lastGpsUpdate = DateTime.now();
     });
   }
 
   void startPing() {
-    setState(() => isSending = true);
-    pingTimer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+    setState(() => isSendingMobileNode = true);
+    mobileNodeTimer = Timer.periodic(Duration(milliseconds: mobileNodeInterval), (timer) {
       sendMobilePacket();
     });
   }
 
   void stopPing() {
-    setState(() => isSending = false);
-    pingTimer?.cancel();
+    setState(() => isSendingMobileNode = false);
+    mobileNodeTimer?.cancel();
   }
 
   @override
@@ -173,20 +224,70 @@ class _MapPageState extends State<MapPage> {
               ),
               Row(
                 children: [
+                  const Text("Altitude:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
+                  const Padding(padding: EdgeInsets.all(4)),
+                  Text("${currentPosition?.altitude}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey),),
+                ],
+              ),
+              Row(
+                children: [
+                  const Text("Speed:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
+                  const Padding(padding: EdgeInsets.all(4)),
+                  Text("${currentPosition?.speed}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey),),
+                ],
+              ),
+              Row(
+                children: [
                   const Text("Last GPS Update:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
                   const Padding(padding: EdgeInsets.all(4)),
                   Text(DateFormat("HH:mm:ss.SS").format(lastGpsUpdate.toLocal()), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey),),
                 ],
               ),
               const Padding(padding: EdgeInsets.all(8)),
+              ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                title: const Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(child: Text("Sensor Debug", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),)),
+                  ],
+                ),
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text("Accelerometer:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),),
+                      Text("$accelerometerX\n$accelerometerY\n$accelerometerZ", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.grey),),
+                    ],
+                  ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text("Gyroscope:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),),
+                      Text("$gyroscopeX\n$gyroscopeY\n$gyroscopeZ", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.grey),),
+                    ],
+                  ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text("Magnetometer:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),),
+                      Text("$magnetometerX\n$magnetometerY\n$magnetometerZ", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.grey),),
+                    ],
+                  ),
+                ]
+              ),
+              const Padding(padding: EdgeInsets.all(8)),
               SizedBox(
                 width: double.infinity,
                 child: CupertinoButton(
                   borderRadius: BorderRadius.circular(16),
-                  color: isSending ? GR_PURPLE : Colors.black,
-                  child: Text(isSending ? "Stop Sending" : "Start Sending", style: TextStyle(color: isSending ? Colors.white : GR_PURPLE),),
+                  color: isSendingMobileNode ? GR_PURPLE : Colors.black,
+                  child: Text(isSendingMobileNode ? "Stop Sending" : "Start Sending", style: TextStyle(color: isSendingMobileNode ? Colors.white : GR_PURPLE),),
                   onPressed: () {
-                    if (isSending) {
+                    if (isSendingMobileNode) {
                       stopPing();
                     } else {
                       startPing();

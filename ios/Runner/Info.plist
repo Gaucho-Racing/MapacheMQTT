@@ -38,6 +38,10 @@
 	<string>Please grant us location access so you can debug gps!</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Please grant us location access so you can debug gps!</string>
+	<key>NSMotionUsageDescription</key>
+	<string>Please grant us motion sensor access so you can debug imu!</string>
+	<key>NSFallDetectionUsageDescription</key>
+	<string>Please grant us motion sensor access so you can debug imu!</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>

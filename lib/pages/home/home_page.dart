@@ -20,10 +20,13 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin<HomePage> {
 
   String connectionStatus = "Disconnected";
   Timer? pingTimer;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void setState(fn) {
@@ -91,7 +94,7 @@ class _HomePageState extends State<HomePage> {
       mqttClient.subscribe("#", MqttQos.atMostOnce);
       mqttClient.updates!.listen((List<MqttReceivedMessage<MqttMessage>>? c) {
         final msg = Message(c![0].payload as MqttPublishMessage);
-        // log("[${msg.topic}] ${msg.bytes}");
+        log("[${msg.topic}] ${msg.bytes}");
         setState(() {
           lastMessage = msg;
         });
