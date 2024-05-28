@@ -36,7 +36,7 @@ class _TabBarControllerState extends State<TabBarController> {
         behaviour: SnakeBarBehaviour.floating,
         snakeShape: SnakeShape.circle,
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
-        padding: EdgeInsets.only(left: 8, right: 8),
+        padding: const EdgeInsets.only(left: 8, right: 8),
         snakeViewColor: GR_PURPLE,
         selectedItemColor: Colors.white,
         unselectedItemColor: Colors.grey[700],

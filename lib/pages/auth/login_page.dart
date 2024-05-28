@@ -89,15 +89,23 @@ class _LoginPageState extends State<LoginPage> {
     final savedPort = prefs.getString("mqtt_port");
     final savedUser = prefs.getString("mqtt_user");
     final savedPassword = prefs.getString("mqtt_password");
-    if (savedHost != null && savedPort != null && savedUser != null && savedPassword != null) {
+    if (savedHost != null) {
       hostController.text = savedHost;
-      portController.text = savedPort;
-      userController.text = savedUser;
-      passwordController.text = savedPassword;
       host = savedHost;
+    }
+    if (savedPort != null) {
+      portController.text = savedPort;
       port = savedPort;
+    }
+    if (savedUser != null) {
+      userController.text = savedUser;
       user = savedUser;
+    }
+    if (savedPassword != null) {
+      passwordController.text = savedPassword;
       password = savedPassword;
+    }
+    if (savedHost != null && savedPort != null && savedUser != null && savedPassword != null) {
       login();
     }
   }

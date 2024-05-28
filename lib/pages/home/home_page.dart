@@ -66,6 +66,12 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  void signOut() {
+    mqttClient.disconnect();
+    prefs.remove("mqtt_password");
+    router.navigateTo(context, "/", replace: true, clearStack: true, transition: TransitionType.fadeIn);
+  }
+
   Future<void> initializeMqtt() async {
     try {
       mqttClient = MqttServerClient.withPort(mqttHost, mqttUser, int.tryParse(mqttPort) ?? 1883);
@@ -85,7 +91,7 @@ class _HomePageState extends State<HomePage> {
       mqttClient.subscribe("#", MqttQos.atMostOnce);
       mqttClient.updates!.listen((List<MqttReceivedMessage<MqttMessage>>? c) {
         final msg = Message(c![0].payload as MqttPublishMessage);
-        log("[${msg.topic}] ${msg.bytes}");
+        // log("[${msg.topic}] ${msg.bytes}");
         setState(() {
           lastMessage = msg;
         });
@@ -186,14 +192,20 @@ class _HomePageState extends State<HomePage> {
         actions: [
           Card(
             // color: Colors.greenAccent,
-            child: Padding(
-              padding: const EdgeInsets.all(4.0),
-              child: Row(
-                children: [
-                  Icon(Icons.circle, color: connectionStatus == "Connected" ? Colors.greenAccent : connectionStatus == "Disconnected" ? Colors.redAccent : Colors.amberAccent, size: 12),
-                  const Padding(padding: EdgeInsets.all(4)),
-                  Text(connectionStatus, style: const TextStyle(fontWeight: FontWeight.bold)),
-                ],
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () {
+                signOut();
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: Row(
+                  children: [
+                    Icon(Icons.circle, color: connectionStatus == "Connected" ? Colors.greenAccent : connectionStatus == "Disconnected" ? Colors.redAccent : Colors.amberAccent, size: 12),
+                    const Padding(padding: EdgeInsets.all(4)),
+                    Text(connectionStatus, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  ],
+                ),
               ),
             ),
           ),
