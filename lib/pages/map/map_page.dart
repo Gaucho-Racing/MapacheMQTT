@@ -191,6 +191,7 @@ class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<Ma
                     borderRadius: BorderRadius.circular(16),
                     child: MapboxMap(
                       accessToken: MAPBOX_ACCESS_TOKEN,
+                      styleString: MAPBOX_DARK_THEME,
                       onMapCreated: _onMapCreated,
                       initialCameraPosition: CameraPosition(
                         target: LatLng(currentPosition!.latitude!, currentPosition!.longitude!),
