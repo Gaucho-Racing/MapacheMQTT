@@ -146,9 +146,12 @@ class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<Ma
     node.magnetometerY = magnetometerY;
     node.magnetometerZ = magnetometerZ;
     node.millis = DateTime.now().millisecondsSinceEpoch;
+    print(node.toBytes());
+    print(node.magnetometerZ);
+    print(node.millis);
     Uint8Buffer buffer = Uint8Buffer();
     buffer.addAll(node.toBytes());
-    mqttClient.publishMessage("$carClass/$carID/$mobileNodeTopic", MqttQos.atMostOnce, buffer);
+    // mqttClient.publishMessage("$carClass/$carID/$mobileNodeTopic", MqttQos.atMostOnce, buffer);
     setState(() {
       lastGpsUpdate = DateTime.now();
     });

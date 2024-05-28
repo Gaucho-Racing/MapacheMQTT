@@ -19,35 +19,35 @@ class MobileNode {
   MobileNode();
 
   Uint8List toBytes() {
-    final buffer = ByteData(16 * 8 + 4); // 16 doubles (8 bytes each) + 1 int (4 bytes)
+    final buffer = ByteData(13 * 8 + 4);
     int offset = 0;
-    buffer.setFloat64(offset, latitude, Endian.big);
+    buffer.setFloat64(offset, latitude, Endian.little);
     offset += 8;
-    buffer.setFloat64(offset, longitude, Endian.big);
+    buffer.setFloat64(offset, longitude, Endian.little);
     offset += 8;
-    buffer.setFloat64(offset, altitude, Endian.big);
+    buffer.setFloat64(offset, altitude, Endian.little);
     offset += 8;
-    buffer.setFloat64(offset, speed, Endian.big);
+    buffer.setFloat64(offset, speed, Endian.little);
     offset += 8;
-    buffer.setFloat64(offset, accelerometerX, Endian.big);
+    buffer.setFloat64(offset, accelerometerX, Endian.little);
     offset += 8;
-    buffer.setFloat64(offset, accelerometerY, Endian.big);
+    buffer.setFloat64(offset, accelerometerY, Endian.little);
     offset += 8;
-    buffer.setFloat64(offset, accelerometerZ, Endian.big);
+    buffer.setFloat64(offset, accelerometerZ, Endian.little);
     offset += 8;
-    buffer.setFloat64(offset, gyroscopeX, Endian.big);
+    buffer.setFloat64(offset, gyroscopeX, Endian.little);
     offset += 8;
-    buffer.setFloat64(offset, gyroscopeY, Endian.big);
+    buffer.setFloat64(offset, gyroscopeY, Endian.little);
     offset += 8;
-    buffer.setFloat64(offset, gyroscopeZ, Endian.big);
+    buffer.setFloat64(offset, gyroscopeZ, Endian.little);
     offset += 8;
-    buffer.setFloat64(offset, magnetometerX, Endian.big);
+    buffer.setFloat64(offset, magnetometerX, Endian.little);
     offset += 8;
-    buffer.setFloat64(offset, magnetometerY, Endian.big);
+    buffer.setFloat64(offset, magnetometerY, Endian.little);
     offset += 8;
-    buffer.setFloat64(offset, magnetometerZ, Endian.big);
+    buffer.setFloat64(offset, magnetometerZ, Endian.little);
     offset += 8;
-    buffer.setInt32(offset, millis, Endian.big);
+    buffer.setInt32(offset, millis, Endian.little);
     return buffer.buffer.asUint8List(0, buffer.lengthInBytes);
   }
 }
