@@ -16,7 +16,7 @@ var httpClient = http.Client();
 
 late SharedPreferences prefs;
 
-Version appVersion = Version("1.2.0+1");
+Version appVersion = Version("1.3.0+1");
 
 MqttClient mqttClient = MqttClient("", "");
 
@@ -42,7 +42,6 @@ String mobileNodeTopic = "mobile";
 Timer? mobileNodeTimer;
 bool isSendingMobileNode = false;
 
-double speed = 0.0;
 DateTime lastGpsUpdate = DateTime.now();
 double accelerometerX = 0.0;
 double accelerometerY = 0.0;

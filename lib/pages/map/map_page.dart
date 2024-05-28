@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/widgets.dart';
-import 'package:geolocator/geolocator.dart' as gl;
 import 'package:intl/intl.dart';
 import 'package:location/location.dart';
 import 'package:mapache_mqtt/models/mobile_node.dart';
@@ -13,6 +12,7 @@ import 'package:mapache_mqtt/utils/config.dart';
 import 'package:mapache_mqtt/utils/theme.dart';
 import 'package:mapache_mqtt/widgets/loading.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
+import 'package:mqtt_client/mqtt_client.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:typed_data/src/typed_buffer.dart';
 
@@ -87,15 +87,6 @@ class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<Ma
       mapController?.animateCamera(CameraUpdate.newLatLngZoom(LatLng(currentPosition!.latitude!, currentPosition!.longitude!), 16.0));
       log("Current location: ${currentPosition!.latitude}, ${currentPosition!.longitude}");
     });
-    const gl.LocationSettings locationSettings = gl.LocationSettings(
-      accuracy: gl.LocationAccuracy.best,
-      distanceFilter: 100,
-    );
-    gl.Geolocator.getPositionStream(locationSettings: locationSettings).listen((gl.Position? position) {
-        setState(() {
-          speed = position?.speed ?? 0;
-        });
-      });
   }
 
   void sensorListeners() {
@@ -140,7 +131,7 @@ class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<Ma
     node.latitude = currentPosition?.latitude ?? 0;
     node.longitude = currentPosition?.longitude ?? 0;
     node.altitude = currentPosition?.altitude ?? 0;
-    node.speed = speed;
+    node.speed = currentPosition?.speed ?? 0;
     node.accelerometerX = accelerometerX;
     node.accelerometerY = accelerometerY;
     node.accelerometerZ = accelerometerZ;
@@ -151,12 +142,9 @@ class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<Ma
     node.magnetometerY = magnetometerY;
     node.magnetometerZ = magnetometerZ;
     node.millis = DateTime.now().millisecondsSinceEpoch;
-    print(node.toBytes());
-    print(node.magnetometerZ);
-    print(node.millis);
     Uint8Buffer buffer = Uint8Buffer();
     buffer.addAll(node.toBytes());
-    // mqttClient.publishMessage("$carClass/$carID/$mobileNodeTopic", MqttQos.atMostOnce, buffer);
+    mqttClient.publishMessage("$carClass/$carID/$mobileNodeTopic", MqttQos.atMostOnce, buffer);
     setState(() {
       lastGpsUpdate = DateTime.now();
     });
@@ -242,7 +230,7 @@ class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<Ma
                 children: [
                   const Text("Speed:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
                   const Padding(padding: EdgeInsets.all(4)),
-                  Text("$speed", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey),),
+                  Text("${currentPosition?.speed}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey),),
                 ],
               ),
               Row(
