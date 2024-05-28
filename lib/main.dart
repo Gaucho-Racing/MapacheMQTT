@@ -2,7 +2,8 @@ import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:mapache_mqtt/pages/auth/login_page.dart';
-import 'package:mapache_mqtt/pages/home_page.dart';
+import 'package:mapache_mqtt/pages/home/home_page.dart';
+import 'package:mapache_mqtt/pages/tab_bar_controller.dart';
 import 'package:mapache_mqtt/utils/config.dart';
 import 'package:mapache_mqtt/utils/logger.dart';
 import 'package:mapache_mqtt/utils/theme.dart';
@@ -31,7 +32,7 @@ Future<void> main() async {
   }));
 
   router.define("/home", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
-    return const HomePage();
+    return const TabBarController();
   }));
 
   runApp(MaterialApp(

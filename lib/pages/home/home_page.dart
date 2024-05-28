@@ -116,7 +116,6 @@ class _HomePageState extends State<HomePage> {
 
   void initializePing() {
     pingTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      mqttClient.subscribe("meta", MqttQos.atMostOnce);
       mqttClient.publishMessage("meta/mapache_mqtt_ping", MqttQos.atMostOnce, MqttClientPayloadBuilder().addString(DateTime.now().toIso8601String()).payload!);
     });
   }
