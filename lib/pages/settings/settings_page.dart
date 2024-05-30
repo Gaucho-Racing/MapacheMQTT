@@ -134,7 +134,7 @@ class _SettingsPageState extends State<SettingsPage> {
               Divider(color: GR_PURPLE),
               Row(
                 children: [
-                  const Text("Car Class", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),),
+                  const Text("Car Class", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
                   const Padding(padding: EdgeInsets.all(2)),
                   Expanded(
                     child: TextField(
@@ -157,7 +157,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               Row(
                 children: [
-                  const Text("Car ID", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),),
+                  const Text("Car ID", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
                   const Padding(padding: EdgeInsets.all(2)),
                   Expanded(
                     child: TextField(
@@ -170,7 +170,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       textCapitalization: TextCapitalization.none,
                       keyboardType: TextInputType.text,
                       autocorrect: false,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                       onChanged: (input) {
                         carID = input;
                       },
@@ -180,7 +180,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               Row(
                 children: [
-                  const Text("Mobile Topic", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),),
+                  const Text("Mobile Topic", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
                   const Padding(padding: EdgeInsets.all(2)),
                   Expanded(
                     child: TextField(
@@ -193,7 +193,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       textCapitalization: TextCapitalization.none,
                       keyboardType: TextInputType.text,
                       autocorrect: false,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                       onChanged: (input) {
                         mobileNodeTopic = input;
                       },
@@ -203,7 +203,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               Row(
                 children: [
-                  const Text("Send Delay", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),),
+                  const Text("Send Delay", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
                   const Padding(padding: EdgeInsets.all(2)),
                   Expanded(
                     child: TextField(
@@ -216,7 +216,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       textCapitalization: TextCapitalization.none,
                       keyboardType: TextInputType.text,
                       autocorrect: false,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                       onChanged: (input) {
                         mobileNodeInterval = int.tryParse(input) ?? 200;
                       },
@@ -226,7 +226,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               Row(
                 children: [
-                  const Text("Speed Calc Delay", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),),
+                  const Text("Speed Calculation Interval", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
                   const Padding(padding: EdgeInsets.all(2)),
                   Expanded(
                     child: TextField(
@@ -239,7 +239,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       textCapitalization: TextCapitalization.none,
                       keyboardType: TextInputType.text,
                       autocorrect: false,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                       onChanged: (input) {
                         speedCalcInterval = int.tryParse(input) ?? 500;
                         prefs.setInt("speedCalcInterval", speedCalcInterval);

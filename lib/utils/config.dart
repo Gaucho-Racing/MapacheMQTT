@@ -17,7 +17,7 @@ var httpClient = http.Client();
 
 late SharedPreferences prefs;
 
-Version appVersion = Version("1.3.0+1");
+Version appVersion = Version("1.4.0+1");
 
 MqttClient mqttClient = MqttClient("", "");
 
