@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:location/location.dart';
 import 'package:mapache_mqtt/models/message.dart';
+import 'package:mapache_mqtt/models/mobile_node.dart';
 import 'package:mapache_mqtt/models/version.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -52,3 +53,8 @@ double gyroscopeZ = 0.0;
 double magnetometerX = 0.0;
 double magnetometerY = 0.0;
 double magnetometerZ = 0.0;
+
+double mbLatitude = 0.0;
+double mbLongitude = 0.0;
+double mbHeading = 0.0;
+double speed = 0.0;

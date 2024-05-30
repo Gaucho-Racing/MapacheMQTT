@@ -14,6 +14,7 @@ import 'package:mapache_mqtt/widgets/loading.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:sensors_plus/sensors_plus.dart';
+import 'package:battery_plus/battery_plus.dart';
 import 'package:typed_data/src/typed_buffer.dart';
 
 class MapPage extends StatefulWidget {
@@ -27,6 +28,7 @@ class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<Ma
 
   MapboxMapController? mapController;
   Location location = Location();
+  var battery = Battery();
 
   bool _serviceEnabled = false;
   PermissionStatus _permissionGranted = PermissionStatus.denied;
@@ -46,6 +48,7 @@ class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<Ma
     super.initState();
     getUserLocation();
     sensorListeners();
+    calculateSpeed();
   }
 
   @override
@@ -83,6 +86,7 @@ class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<Ma
     location.onLocationChanged.listen((LocationData newPosition) {
       setState(() {
         currentPosition = newPosition;
+        lastGpsUpdate = DateTime.now();
       });
       mapController?.animateCamera(CameraUpdate.newLatLngZoom(LatLng(currentPosition!.latitude!, currentPosition!.longitude!), 16.0));
       log("Current location: ${currentPosition!.latitude}, ${currentPosition!.longitude}");
@@ -126,12 +130,13 @@ class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<Ma
     );
   }
 
-  void sendMobilePacket() {
+  Future<void> sendMobilePacket() async {
     MobileNode node = MobileNode();
     node.latitude = currentPosition?.latitude ?? 0;
     node.longitude = currentPosition?.longitude ?? 0;
     node.altitude = currentPosition?.altitude ?? 0;
-    node.speed = currentPosition?.speed ?? 0;
+    node.speed = speed;
+    node.heading = mbHeading;
     node.accelerometerX = accelerometerX;
     node.accelerometerY = accelerometerY;
     node.accelerometerZ = accelerometerZ;
@@ -141,13 +146,50 @@ class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<Ma
     node.magnetometerX = magnetometerX;
     node.magnetometerY = magnetometerY;
     node.magnetometerZ = magnetometerZ;
+    node.battery = await battery.batteryLevel;
     node.millis = DateTime.now().millisecondsSinceEpoch;
     Uint8Buffer buffer = Uint8Buffer();
     buffer.addAll(node.toBytes());
     mqttClient.publishMessage("$carClass/$carID/$mobileNodeTopic", MqttQos.atMostOnce, buffer);
     setState(() {
-      lastGpsUpdate = DateTime.now();
+      // lastGpsUpdate = DateTime.now();
     });
+  }
+
+  void calculateSpeed() {
+    double lastLongitude = 0.0;
+    double lastLatitude = 0.0;
+    DateTime lastTime = DateTime.now();
+    Timer.periodic(const Duration(milliseconds: 500), (timer) {
+      if (currentPosition != null) {
+        DateTime now = DateTime.now();
+        double distance = _calculateDistance(lastLatitude, lastLongitude, currentPosition!.latitude!, currentPosition!.longitude!);
+        double time = now.difference(lastTime).inMilliseconds / 1000;
+        setState(() {
+          speed = distance / time;
+          lastLongitude = currentPosition!.longitude!;
+          lastLatitude = currentPosition!.latitude!;
+          lastTime = now;
+        });
+        log("Speed: $speed m/s");
+      }
+    });
+  }
+
+  // Haversine formula to calculate distance between two points
+  double _calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+    const earthRadius = 6371e3; // meters
+    double phi1 = lat1 * pi / 180;
+    double phi2 = lat2 * pi / 180;
+    double deltaPhi = (lat2 - lat1) * pi / 180;
+    double deltaLambda = (lon2 - lon1) * pi / 180;
+
+    double a = sin(deltaPhi / 2) * sin(deltaPhi / 2) +
+        cos(phi1) * cos(phi2) *
+            sin(deltaLambda / 2) * sin(deltaLambda / 2);
+    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+
+    return earthRadius * c; // in meters
   }
 
   void startPing() {
@@ -187,19 +229,28 @@ class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<Ma
                     borderRadius: BorderRadius.circular(16),
                     child: MapboxMap(
                       accessToken: MAPBOX_ACCESS_TOKEN,
-                      styleString: MAPBOX_DARK_THEME,
+                      styleString: MapboxStyles.DARK,
                       onMapCreated: _onMapCreated,
                       initialCameraPosition: CameraPosition(
                         target: LatLng(currentPosition!.latitude!, currentPosition!.longitude!),
-                        zoom: 14.0,
+                        zoom: 16.0,
                       ),
-                      attributionButtonMargins: const Point(-32, -32),
+                      onUserLocationUpdated: (UserLocation location) {
+                        print("Updated location: ${location.position!.latitude}, ${location.position!.longitude}");
+                        setState(() {
+                          mbLatitude = location.position!.latitude;
+                          mbLongitude = location.position!.longitude;
+                          mbHeading = location.heading!.trueHeading ?? 0.0;
+                        });
+                      },
                       myLocationEnabled: true,
+                      myLocationTrackingMode: MyLocationTrackingMode.TrackingCompass,
+                      trackCameraPosition: true,
                       dragEnabled: false,
                       compassEnabled: false,
                       zoomGesturesEnabled: false,
-                      logoViewMargins: const Point(-100, 0),
-                      trackCameraPosition: true,
+                      logoViewMargins: const Point(-32, -32),
+                      attributionButtonMargins: const Point(-32, -32),
                     ),
                   ) : const Center(child: LoadingIndicator()),
                 )
@@ -207,37 +258,44 @@ class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<Ma
               const Padding(padding: EdgeInsets.all(8)),
               Row(
                 children: [
-                  const Text("Latitude:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
+                  const Text("Latitude:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),),
                   const Padding(padding: EdgeInsets.all(4)),
-                  Text("${currentPosition?.latitude}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey),),
+                  Text("${currentPosition?.latitude}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.grey),),
                 ],
               ),
               Row(
                 children: [
-                  const Text("Latency:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
+                  const Text("Longitude:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),),
                   const Padding(padding: EdgeInsets.all(4)),
-                  Text("${currentPosition?.longitude}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey),),
+                  Text("${currentPosition?.longitude}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.grey),),
                 ],
               ),
               Row(
                 children: [
-                  const Text("Altitude:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
+                  const Text("Altitude:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),),
                   const Padding(padding: EdgeInsets.all(4)),
-                  Text("${currentPosition?.altitude}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey),),
+                  Text("${currentPosition?.altitude}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.grey),),
                 ],
               ),
               Row(
                 children: [
-                  const Text("Speed:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
+                  const Text("Heading:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),),
                   const Padding(padding: EdgeInsets.all(4)),
-                  Text("${currentPosition?.speed}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey),),
+                  Text("$mbHeading", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.grey),),
                 ],
               ),
               Row(
                 children: [
-                  const Text("Last GPS Update:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
+                  const Text("Speed:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),),
                   const Padding(padding: EdgeInsets.all(4)),
-                  Text(DateFormat("HH:mm:ss.SS").format(lastGpsUpdate.toLocal()), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey),),
+                  Text("$speed", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.grey),),
+                ],
+              ),
+              Row(
+                children: [
+                  const Text("Last GPS Update:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),),
+                  const Padding(padding: EdgeInsets.all(4)),
+                  Text(DateFormat("HH:mm:ss.SS").format(lastGpsUpdate.toLocal()), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.grey),),
                 ],
               ),
               const Padding(padding: EdgeInsets.all(8)),
@@ -246,7 +304,7 @@ class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<Ma
                 title: const Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(child: Text("Sensor Debug", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),)),
+                    Expanded(child: Text("Sensor Debug", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),)),
                   ],
                 ),
                 children: [

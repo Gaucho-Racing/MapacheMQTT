@@ -13,10 +13,18 @@ packages:
     dependency: transitive
     description:
       name: archive
-      sha256: "0763b45fa9294197a2885c8567927e2830ade852e5c896fd4ab7e0e348d0f373"
+      sha256: "6bd38d335f0954f5fad9c79e614604fbf03a0e5b975923dd001b6ea965ef5b4b"
       url: "https://pub.dev"
     source: hosted
-    version: "3.5.0"
+    version: "3.6.0"
+  args:
+    dependency: transitive
+    description:
+      name: args
+      sha256: "7cf60b9f0cc88203c5a190b4cd62a99feea42759a7fa695010eb5de1c0b2252a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.5.0"
   async:
     dependency: transitive
     description:
@@ -25,6 +33,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.11.0"
+  battery_plus:
+    dependency: "direct main"
+    description:
+      name: battery_plus
+      sha256: ca67f5457a473f132fec42a4445c8c19a98205c1bc20f8feaa5a7f50d42f750f
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.0.1"
+  battery_plus_platform_interface:
+    dependency: transitive
+    description:
+      name: battery_plus_platform_interface
+      sha256: "942707f90e2f7481dcb178df02e22a9c6971b3562b848d6a1b8c7cff9f1a1fec"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
   boolean_selector:
     dependency: transitive
     description:
@@ -89,6 +113,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.8"
+  dbus:
+    dependency: transitive
+    description:
+      name: dbus
+      sha256: "365c771ac3b0e58845f39ec6deebc76e3276aa9922b0cc60840712094d9047ac"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.7.10"
   event_bus:
     dependency: transitive
     description:
@@ -252,26 +284,26 @@ packages:
     dependency: "direct main"
     description:
       name: location
-      sha256: "2d88e4ffb464d0ca5510e7edd29723ab762c43479de39d2d19ed6194f5b6d624"
+      sha256: "153c5d779e3bfe293ba326105522ab3e3971f11390b32c7e4dce804aa23655dc"
       url: "https://pub.dev"
     source: hosted
-    version: "6.0.1"
+    version: "5.0.0"
   location_platform_interface:
     dependency: transitive
     description:
       name: location_platform_interface
-      sha256: "2ecde6bb0f88032b0bbbde37e18975b4468711dd92619c2235cc0c0ee93b4b8e"
+      sha256: "8aa1d34eeecc979d7c9fe372931d84f6d2ebbd52226a54fe1620de6fdc0753b1"
       url: "https://pub.dev"
     source: hosted
-    version: "4.0.0"
+    version: "3.1.2"
   location_web:
     dependency: transitive
     description:
       name: location_web
-      sha256: "15ad7b4c8a9f55abee513373755e093a40c04d7e24fc1b4f89676fe99523d034"
+      sha256: ec484c66e8a4ff1ee5d044c203f4b6b71e3a0556a97b739a5bc9616de672412b
       url: "https://pub.dev"
     source: hosted
-    version: "5.0.1"
+    version: "4.2.0"
   logging:
     dependency: transitive
     description:
@@ -444,10 +476,10 @@ packages:
     dependency: transitive
     description:
       name: shared_preferences_foundation
-      sha256: "7708d83064f38060c7b39db12aefe449cb8cdc031d6062280087bc4cdb988f5c"
+      sha256: "0a8a893bf4fd1152f93fec03a415d11c27c74454d96e2318a7ac38dd18683ab7"
       url: "https://pub.dev"
     source: hosted
-    version: "2.3.5"
+    version: "2.4.0"
   shared_preferences_linux:
     dependency: transitive
     description:
@@ -557,6 +589,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.2"
+  upower:
+    dependency: transitive
+    description:
+      name: upower
+      sha256: cf042403154751180affa1d15614db7fa50234bc2373cd21c3db666c38543ebf
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.7.0"
   vector_math:
     dependency: transitive
     description:
