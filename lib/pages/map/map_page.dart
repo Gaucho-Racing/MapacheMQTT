@@ -160,7 +160,7 @@ class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<Ma
     double lastLongitude = 0.0;
     double lastLatitude = 0.0;
     DateTime lastTime = DateTime.now();
-    Timer.periodic(const Duration(milliseconds: 500), (timer) {
+    Timer.periodic(Duration(milliseconds: speedCalcInterval), (timer) {
       if (currentPosition != null) {
         DateTime now = DateTime.now();
         double distance = _calculateDistance(lastLatitude, lastLongitude, currentPosition!.latitude!, currentPosition!.longitude!);
@@ -193,6 +193,7 @@ class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<Ma
   }
 
   void startPing() {
+    log("Sending mobile node packets every $mobileNodeInterval ms");
     setState(() => isSendingMobileNode = true);
     mobileNodeTimer = Timer.periodic(Duration(milliseconds: mobileNodeInterval), (timer) {
       sendMobilePacket();
@@ -200,6 +201,7 @@ class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<Ma
   }
 
   void stopPing() {
+    log("Stopped sending mobile node packets");
     setState(() => isSendingMobileNode = false);
     mobileNodeTimer?.cancel();
   }

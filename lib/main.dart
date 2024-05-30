@@ -23,6 +23,7 @@ Future<void> main() async {
   MAPBOX_ACCESS_TOKEN = dotenv.env['MAPBOX_ACCESS_TOKEN']!;
 
   prefs = await SharedPreferences.getInstance();
+  speedCalcInterval = prefs.getInt("speedCalcInterval") ?? 500;
 
   log("MapacheMQTT v${appVersion.toString()} – ${appVersion.getVersionCode()}");
 

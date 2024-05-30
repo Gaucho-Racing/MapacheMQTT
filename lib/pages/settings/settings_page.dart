@@ -224,6 +224,30 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ],
               ),
+              Row(
+                children: [
+                  const Text("Speed Calc Delay", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),),
+                  const Padding(padding: EdgeInsets.all(2)),
+                  Expanded(
+                    child: TextField(
+                      controller: TextEditingController()..text = speedCalcInterval.toString(),
+                      textAlign: TextAlign.end,
+                      decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          hintText: "500"
+                      ),
+                      textCapitalization: TextCapitalization.none,
+                      keyboardType: TextInputType.text,
+                      autocorrect: false,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+                      onChanged: (input) {
+                        speedCalcInterval = int.tryParse(input) ?? 500;
+                        prefs.setInt("speedCalcInterval", speedCalcInterval);
+                      },
+                    ),
+                  ),
+                ],
+              ),
               const Padding(padding: EdgeInsets.all(8)),
               SizedBox(
                 width: double.infinity,

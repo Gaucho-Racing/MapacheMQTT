@@ -40,6 +40,7 @@ String carClass = "gr24";
 String carID = "test";
 String mobileNodeTopic = "mobile";
 
+int speedCalcInterval = 500;
 Timer? mobileNodeTimer;
 bool isSendingMobileNode = false;
 

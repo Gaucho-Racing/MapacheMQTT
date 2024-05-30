@@ -52,7 +52,7 @@ class MobileNode {
     buffer.setFloat64(offset, magnetometerZ, Endian.little);
     offset += 8;
     buffer.setInt8(offset, battery);
-    offset += 4;
+    offset += 1;
     buffer.setInt32(offset, millis, Endian.little);
     return buffer.buffer.asUint8List(0, buffer.lengthInBytes);
   }
