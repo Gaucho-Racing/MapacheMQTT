@@ -125,6 +125,11 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin<
 
   void initializePing() {
     pingTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      MqttClientConnectionStatus? status = mqttClient.connectionStatus;
+      if (status?.state == MqttConnectionState.disconnected) {
+        log("MQTT client disconnected. Attempting to reconnect...");
+        mqttClient.connect();
+      }
       mqttClient.publishMessage("meta/mapache_mqtt_ping", MqttQos.atMostOnce, MqttClientPayloadBuilder().addString(DateTime.now().toIso8601String()).payload!);
     });
   }
