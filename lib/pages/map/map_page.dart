@@ -86,7 +86,6 @@ class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<Ma
     location.onLocationChanged.listen((LocationData newPosition) {
       setState(() {
         currentPosition = newPosition;
-        lastGpsUpdate = DateTime.now();
       });
       mapController?.animateCamera(CameraUpdate.newLatLngZoom(LatLng(currentPosition!.latitude!, currentPosition!.longitude!), 16.0));
       log("Current location: ${currentPosition!.latitude}, ${currentPosition!.longitude}");
@@ -152,7 +151,7 @@ class _MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin<Ma
     buffer.addAll(node.toBytes());
     mqttClient.publishMessage("$carClass/$carID/$mobileNodeTopic", MqttQos.atMostOnce, buffer);
     setState(() {
-      // lastGpsUpdate = DateTime.now();
+      lastGpsUpdate = DateTime.now();
     });
   }
 
