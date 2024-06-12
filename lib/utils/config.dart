@@ -34,6 +34,7 @@ String MAPBOX_ACCESS_TOKEN = "mapbox-access-token";
 List<int> latency = [0];
 Map<String, List<Message>> messageMap = {};
 Message lastMessage = Message(MqttPublishMessage());
+int maxMessages = 100;
 
 int mobileNodeInterval = 200;
 String carClass = "gr24";

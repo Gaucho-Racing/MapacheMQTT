@@ -114,6 +114,12 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin<
             latency.add(ping);
           });
         }
+
+        if (messageMap[msg.topic]!.length > maxMessages) {
+          setState(() {
+            messageMap[msg.topic]!.clear();
+          });
+        }
       });
 
       initializePing();
