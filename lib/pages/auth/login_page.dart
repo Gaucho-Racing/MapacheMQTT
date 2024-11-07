@@ -119,7 +119,7 @@ class _LoginPageState extends State<LoginPage> {
           children: [
             Image.asset("images/icons/mapache.png", height: 32,),
             const Padding(padding: EdgeInsets.all(4)),
-            const Text("MQTT"),
+            const Text("MQTT", style: TextStyle(color: Colors.white)),
           ],
         ),
       ),

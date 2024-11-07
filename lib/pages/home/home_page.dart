@@ -55,20 +55,6 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin<
     });
   }
 
-  void onReconnecting() {
-    log("Reconnecting to MQTT server @ $mqttHost");
-    setState(() {
-      connectionStatus = "Reconnecting";
-    });
-  }
-
-  void onReconnected() {
-    log("Reconnected to MQTT server @ $mqttHost");
-    setState(() {
-      connectionStatus = "Connected";
-    });
-  }
-
   void signOut() {
     mqttClient.disconnect();
     prefs.remove("mqtt_password");
@@ -83,11 +69,10 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin<
           .withClientIdentifier("mapache_mqtt_${(1 + Random().nextInt(100))}")
           .startClean()
           .withWillQos(MqttQos.atMostOnce);
+      mqttClient.autoReconnect = true;
       mqttClient.connectionMessage = connectMessage;
       mqttClient.onConnected = onConnected;
       mqttClient.onDisconnected = onDisconnected;
-      mqttClient.onAutoReconnect = onReconnecting;
-      mqttClient.onAutoReconnected = onReconnected;
       await mqttClient.connect();
 
       mqttClient.resubscribeOnAutoReconnect = true;
@@ -130,12 +115,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin<
   }
 
   void initializePing() {
-    pingTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      MqttClientConnectionStatus? status = mqttClient.connectionStatus;
-      if (status?.state == MqttConnectionState.disconnected) {
-        log("MQTT client disconnected. Attempting to reconnect...");
-        mqttClient.connect();
-      }
+    pingTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
       mqttClient.publishMessage("meta/mapache_mqtt_ping", MqttQos.atMostOnce, MqttClientPayloadBuilder().addString(DateTime.now().toIso8601String()).payload!);
     });
   }
